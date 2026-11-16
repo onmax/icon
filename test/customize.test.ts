@@ -10,6 +10,12 @@ describe('customized css icons', async () => {
     browser: true,
   })
 
+  it('passes the icon name and prefix to the global customize function', async () => {
+    const html = await $fetch<string>('/')
+    const rule = html.match(/i-ph\\:anchor-bold\)\{[^}]*\}/)?.[0]
+    expect(rule).toContain(`fill='red'`)
+  })
+
   it('hydrates customized icons with the class rendered during SSR', async () => {
     const html = await $fetch<string>('/')
     const ssrClasses = [...html.matchAll(/class="(iconify i-ph:[\w-]+--customized-[^"]+)"/g)].map(m => m[1]!)
@@ -27,7 +33,7 @@ describe('customized css icons', async () => {
     await page.waitForLoadState('networkidle')
 
     expect(await page.$$eval('.iconify', icons => icons.map(icon => icon.getAttribute('class'))))
-      .toEqual([thinClass, thinClass, boldClass])
+      .toEqual([thinClass, thinClass, 'iconify i-ph:anchor-bold', boldClass])
 
     const ssrHashes = ssrClasses.map(c => c.split('--customized-')[1]!)
     const customizedRules = await page.$$eval('style', styles => styles

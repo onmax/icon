@@ -14,6 +14,7 @@ const thin = (content: string) => content.replace(/stroke-width="[^"]*"/g, 'stro
         :customize="thin"
       />
     </ClientOnly>
+    <Icon name="ph:anchor-bold" />
     <div id="lazy">
       <LazyBoldIcon hydrate-on-interaction />
     </div>

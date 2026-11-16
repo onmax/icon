@@ -5,7 +5,7 @@ import type { NuxtIconRuntimeOptions, NuxtIconRuntimeServerOptions } from '../..
 import type { IconifyIconCustomizeCallback } from './name'
 import { useCustomizeHash } from './customize-hash'
 import { createIconSelectors, escapeCssSelector } from './css-selectors'
-import { resolveCustomizeFn } from './name'
+import { resolveCustomizeFn, withIconName } from './name'
 import { insertIconStyle } from './style-order'
 import { useAppConfig, useNuxtApp, useHead, useRuntimeConfig, onServerPrefetch } from '#imports'
 
@@ -66,12 +66,13 @@ export const NuxtIconCss = /* @__PURE__ */ defineComponent({
 
     const selector = computed(() => '.' + escapeCssSelector(cssClass.value))
 
-    function getCSS(rt: CssRuntime, icon: IconifyIcon, withLayer = true, iconSelector = selector.value) {
+    function getCSS(rt: CssRuntime, icon: IconifyIcon, name: string, withLayer = true, iconSelector = selector.value) {
       if (options.cssWherePseudo) {
         iconSelector = `:where(${iconSelector})`
       }
 
-      const css = rt.getCachedIconCSS(icon, iconSelector, resolveCustomizeFn(props.customize, options.customize))
+      const customize = resolveCustomizeFn(props.customize, options.customize)
+      const css = rt.getCachedIconCSS(icon, iconSelector, customize && withIconName(customize, name))
       if (options.cssLayer && withLayer) {
         return `@layer ${options.cssLayer} { ${css} }`
       }
@@ -89,7 +90,7 @@ export const NuxtIconCss = /* @__PURE__ */ defineComponent({
         if (typeof document === 'undefined')
           return
         const style = document.createElement('style')
-        style.textContent = getCSS(rt, icon, true, iconSelector)
+        style.textContent = getCSS(rt, icon, name, true, iconSelector)
         if (import.meta.dev) {
           style.dataset.nuxtIconDev = name
         }
@@ -162,7 +163,7 @@ export const NuxtIconCss = /* @__PURE__ */ defineComponent({
           }
           // Dedupe CSS (use cssClass as key to support per-instance customization)
           if (cssClass.value && !ssrCSS.has(cssClass.value)) {
-            const css = getCSS(rt, icon, false)
+            const css = getCSS(rt, icon, props.name, false)
             ssrCSS.set(cssClass.value, css)
           }
           return null
